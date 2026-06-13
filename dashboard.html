@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Dashboard | Nihaya</title>
+  <meta name="description" content="Manage your Nihaya boutique orders, tailoring progress, loyalty status, and account settings.">
+  
+  <!-- CSS CDNs -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+
+  <style>
+    .dashboard-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      border-radius: 4px;
+      color: var(--text-secondary);
+      transition: var(--transition-fast);
+    }
+    .dashboard-nav-item:hover, .dashboard-nav-item.active {
+      background-color: var(--bg-tertiary);
+      color: var(--accent-color);
+    }
+    .tracking-step {
+      text-align: center;
+      position: relative;
+      flex-grow: 1;
+    }
+    .tracking-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      width: 100%;
+      height: 2px;
+      background-color: var(--border-color);
+      z-index: 1;
+    }
+    .tracking-step.completed:not(:last-child)::after {
+      background-color: var(--accent-color);
+    }
+    .tracking-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background-color: var(--bg-secondary);
+      border: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 8px;
+      position: relative;
+      z-index: 2;
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+    .tracking-step.completed .tracking-dot {
+      background-color: var(--accent-color);
+      border-color: var(--accent-color);
+      color: white;
+    }
+    .tracking-step.active .tracking-dot {
+      border-color: var(--accent-color);
+      color: var(--accent-color);
+      animation: pulseBorder 2s infinite;
+    }
+    @keyframes pulseBorder {
+      0% { box-shadow: 0 0 0 0 rgba(197, 185, 165, 0.4); }
+      70% { box-shadow: 0 0 0 8px rgba(197, 185, 165, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(197, 185, 165, 0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header Section -->
+  <header class="navbar navbar-expand-md sticky-top nihaya-navbar">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-4">
+        <div class="brand-group">
+          <a class="navbar-brand brand-mark" href="index.html">Nihaya</a>
+          <div class="navbar-subtitle">The Ultimate Abaya Destination</div>
+        </div>
+
+        <button class="navbar-toggler d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#nihayaNavMenu" aria-controls="nihayaNavMenu" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="bi bi-list"></i>
+        </button>
+      </div>
+
+      <div class="collapse navbar-collapse justify-content-center" id="nihayaNavMenu">
+        <ul class="navbar-nav align-items-center nihaya-menu">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="shop.html">Shop</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+          <li class="nav-item"><a class="nav-link" href="dashboard.html">Atelier Portal</a></li>
+        </ul>
+      </div>
+
+      <div class="search-box-container mx-3 d-none d-md-block">
+        <i class="bi bi-search search-icon-inside"></i>
+        <input type="text" id="search-input" class="search-input" placeholder="Search our luxury collection...">
+        <div id="search-results-dropdown" class="search-dropdown"></div>
+      </div>
+
+      <div class="header-actions">
+        <button class="icon-btn d-md-none" data-bs-toggle="collapse" data-bs-target="#mobileSearchCollapse" aria-label="Open search">
+          <i class="bi bi-search"></i>
+        </button>
+
+        <button type="button" class="icon-btn theme-toggle-btn d-none d-md-inline-block" aria-label="Switch to dark mode" title="Switch to dark mode">
+          <i class="bi bi-sun-fill"></i>
+        </button>
+
+        <a href="wishlist.html" class="icon-btn" id="wishlist-header-link" aria-label="View Wishlist">
+          <i class="bi bi-heart"></i>
+          <span class="badge-dot wishlist-badge" style="display: none;">0</span>
+        </a>
+
+        <a href="cart.html" class="icon-btn" id="cart-header-link" aria-label="View Cart">
+          <i class="bi bi-bag"></i>
+          <span class="badge-dot cart-badge" style="display: none;">0</span>
+        </a>
+
+        <a href="profile.html" class="icon-btn d-none d-md-inline-block" id="profile-header-link" aria-label="User Profile">
+          <i class="bi bi-person"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Search Bar Collapse -->
+  <div class="collapse d-md-none border-bottom p-3 bg-white" id="mobileSearchCollapse" style="background-color: var(--bg-primary) !important; border-color: var(--border-color) !important;">
+    <div class="search-box-container w-100 position-relative">
+      <i class="bi bi-search search-icon-inside"></i>
+      <input type="text" id="search-input" class="search-input" placeholder="Search abayas...">
+      <div id="search-results-dropdown" class="search-dropdown"></div>
+    </div>
+  </div>
+
+  <!-- Dashboard Main Grid -->
+  <main class="py-5">
+    <div class="container">
+      
+      <div class="row g-4">
+        <!-- Sidebar Navigation (Desktop) -->
+        <aside class="col-md-3">
+          <div class="p-3 border rounded bg-white mb-4" style="background-color: var(--bg-primary) !important; border-color: var(--border-color) !important;">
+            <div class="text-center py-3 border-bottom mb-3" style="border-color: var(--border-color) !important;">
+              <img id="user-avatar" src="" alt="User Avatar" class="rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--accent-color);">
+              <h2 class="h5 mb-0" id="user-greeting-name">Loading...</h2>
+              <span class="small text-muted">Luxury Tier Client</span>
+            </div>
+            
+            <nav class="d-flex flex-column gap-2">
+              <a href="dashboard.html" class="dashboard-nav-item active">
+                <i class="bi bi-speedometer2"></i> Dashboard Overview
+              </a>
+              <a href="profile.html" class="dashboard-nav-item">
+                <i class="bi bi-person"></i> My Profile Details
+              </a>
+              <a href="settings.html" class="dashboard-nav-item">
+                <i class="bi bi-sliders"></i> Portal Settings
+              </a>
+            </nav>
+          </div>
+        </aside>
+
+        <!-- Main Dashboard Content Panel -->
+        <section class="col-md-9">
+          <div class="mb-4">
+            <h1 class="h3">Atelier Dashboard</h1>
+            <p class="text-muted">Review your private measurements, loyalty status, and orders in production.</p>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="row g-3 mb-4">
+            <!-- Loyalty Card -->
+            <div class="col-sm-4">
+              <div class="dashboard-card">
+                <span class="lux-form-label mb-1">Nihaya Points</span>
+                <div class="stat-number" id="stats-points">150</div>
+                <span class="small text-muted"><i class="bi bi-gem"></i> Platinum Atelier tier</span>
+              </div>
+            </div>
+            <!-- Wishlist Card -->
+            <div class="col-sm-4">
+              <div class="dashboard-card">
+                <span class="lux-form-label mb-1">Saved Items</span>
+                <div class="stat-number" id="stats-wishlist">0</div>
+                <a href="wishlist.html" class="small text-decoration-underline text-secondary">View Wishlist</a>
+              </div>
+            </div>
+            <!-- Active Enquiries Card -->
+            <div class="col-sm-4">
+              <div class="dashboard-card">
+                <span class="lux-form-label mb-1">Contact Inquiries</span>
+                <div class="stat-number" id="stats-inquiries">0</div>
+                <span class="small text-muted">Registered locally</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Order Tracking Panel -->
+          <div class="p-4 border rounded mb-4 bg-white" style="background-color: var(--bg-primary) !important; border-color: var(--border-color) !important;">
+            <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom" style="border-color: var(--border-color) !important;">
+              <h2 class="h5 mb-0">Live Order Tracking</h2>
+              <span class="badge" style="background-color: var(--accent-light); color: var(--accent-color); border: 1px solid var(--accent-color);">Order #NH-9912</span>
+            </div>
+
+            <div class="row text-center mb-4">
+              <div class="col-sm-3 col-6 mb-3 mb-sm-0">
+                <div class="tracking-step completed">
+                  <div class="tracking-dot"><i class="bi bi-check"></i></div>
+                  <div class="small fw-bold">Inquiry</div>
+                  <span class="small text-muted" style="font-size: 0.75rem;">Registered</span>
+                </div>
+              </div>
+              <div class="col-sm-3 col-6 mb-3 mb-sm-0">
+                <div class="tracking-step completed">
+                  <div class="tracking-dot"><i class="bi bi-check"></i></div>
+                  <div class="small fw-bold">Tailoring</div>
+                  <span class="small text-muted" style="font-size: 0.75rem;">In Progress</span>
+                </div>
+              </div>
+              <div class="col-sm-3 col-6">
+                <div class="tracking-step active">
+                  <div class="tracking-dot">3</div>
+                  <div class="small fw-bold">QC Check</div>
+                  <span class="small text-muted" style="font-size: 0.75rem;">At Atelier</span>
+                </div>
+              </div>
+              <div class="col-sm-3 col-6">
+                <div class="tracking-step">
+                  <div class="tracking-dot">4</div>
+                  <div class="small fw-bold">Delivery</div>
+                  <span class="small text-muted" style="font-size: 0.75rem;">UAE Express</span>
+                </div>
+              </div>
+            </div>
+            
+            <p class="text-secondary small mb-0"><i class="bi bi-info-circle text-warning"></i> <strong>Atelier Note:</strong> Your 'Classic Noir Nida Abaya' has successfully completed custom sleeve adjustments. Currently entering standard hand-sewn review. Final shipment slated for tomorrow morning.</p>
+          </div>
+
+          <!-- Recent Inquiries Table -->
+          <div class="p-4 border rounded bg-white" style="background-color: var(--bg-primary) !important; border-color: var(--border-color) !important;">
+            <h3 class="h5 mb-3 pb-2 border-bottom" style="border-color: var(--border-color) !important;">Recent Concierge Inquiries</h3>
+            <div class="table-responsive">
+              <table class="table align-middle text-secondary small">
+                <thead>
+                  <tr class="text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.1em;">
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="inquiries-table-body">
+                  <!-- Rendered dynamically -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer-lux">
+    <div class="container">
+      <div class="row g-4 mb-5">
+        <div class="col-lg-4 col-md-6">
+          <div class="footer-logo">Nihaya</div>
+          <p class="footer-slogan">The Ultimate Abaya Destination</p>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-link-col">
+          <h5>Shopping</h5>
+          <ul>
+            <li><a href="shop.html">New Arrivals</a></li>
+            <li><a href="shop.html?category=Linen Collection">Linen Collection</a></li>
+            <li><a href="shop.html?category=Classic Black">Noir Nida</a></li>
+            <li><a href="wishlist.html">Your Wishlist</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-link-col">
+          <h5>About Brand</h5>
+          <ul>
+            <li><a href="about.html">Our Atelier Story</a></li>
+            <li><a href="about.html#fabric-guide">Fabric Guide</a></li>
+            <li><a href="contact.html">Boutique Locations</a></li>
+            <li><a href="contact.html">Custom Orders</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-link-col">
+          <h5>Bespoke Care</h5>
+          <ul>
+            <li><a href="dashboard.html">Order Tracker</a></li>
+            <li><a href="profile.html">Boutique Profile</a></li>
+            <li><a href="settings.html">Theme Settings</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-link-col">
+          <h5>Concierge</h5>
+          <p class="text-muted small mb-2"><i class="bi bi-telephone"></i> +971 50 123 4567</p>
+          <p class="text-muted small mb-2"><i class="bi bi-envelope"></i> care@nihaya.com</p>
+        </div>
+      </div>
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center border-top pt-4" style="border-color: var(--border-color) !important;">
+        <p class="text-muted small mb-0">&copy; 2026 Nihaya Luxury Atelier. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile Bottom Sticky Menu -->
+  <nav class="mobile-bottom-nav">
+    <a href="index.html" class="mobile-nav-item" aria-label="Home page">
+      <i class="bi bi-house"></i>
+      <span>Home</span>
+    </a>
+    <a href="shop.html" class="mobile-nav-item" aria-label="Shop products">
+      <i class="bi bi-search"></i>
+      <span>Shop</span>
+    </a>
+    <a href="wishlist.html" class="mobile-nav-item" aria-label="Saved products">
+      <i class="bi bi-heart"></i>
+      <span class="badge-dot wishlist-badge" style="display: none;">0</span>
+      <span>Wishlist</span>
+    </a>
+    <a href="cart.html" class="mobile-nav-item" aria-label="Shopping cart">
+      <i class="bi bi-bag"></i>
+      <span class="badge-dot cart-badge" style="display: none;">0</span>
+      <span>Cart</span>
+    </a>
+    <a href="profile.html" class="mobile-nav-item active" aria-label="Customer dashboard">
+      <i class="bi bi-person"></i>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <!-- JS Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/products.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/notifications.js"></script>
+  <script src="assets/js/main.js"></script>
+
+  <!-- Dashboard Controller Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof getProfile !== 'function') return;
+
+      const profile = getProfile();
+      const wishlist = getWishlist();
+      const inquiries = JSON.parse(localStorage.getItem('nihaya_inquiries') || '[]');
+
+      // Greeting Card
+      document.getElementById('user-avatar').src = profile.avatar || 'https://images.unsplash.com/photo-1544002613-e87ca75a784a?w=150';
+      document.getElementById('user-greeting-name').textContent = profile.name;
+
+      // Stats counters
+      document.getElementById('stats-points').textContent = profile.points || 150;
+      document.getElementById('stats-wishlist').textContent = wishlist.length;
+      document.getElementById('stats-inquiries').textContent = inquiries.length;
+
+      // Render inquiries table
+      const tBody = document.getElementById('inquiries-table-body');
+      tBody.innerHTML = '';
+
+      if (inquiries.length === 0) {
+        // Render 2 simulated mock historical entries so dashboard doesn't look empty
+        tBody.innerHTML = `
+          <tr>
+            <td>09/06/2026</td>
+            <td>General Size Alteration inquiry (Height 54)</td>
+            <td><span class="text-success font-weight-bold">Resolved</span></td>
+          </tr>
+          <tr>
+            <td>02/06/2026</td>
+            <td>Bespoke organza cuffs adjustment</td>
+            <td><span class="text-success font-weight-bold">Resolved</span></td>
+          </tr>
+        `;
+      } else {
+        inquiries.reverse().forEach(inq => {
+          const tr = document.createElement('tr');
+          const dateStr = new Date(inq.date).toLocaleDateString();
+          tr.innerHTML = `
+            <td>${dateStr}</td>
+            <td>${inq.subject} - ${inq.details.substring(0, 40)}...</td>
+            <td><span class="text-warning font-weight-bold">Pending Stylist</span></td>
+          </tr>
+          `;
+          tBody.appendChild(tr);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
