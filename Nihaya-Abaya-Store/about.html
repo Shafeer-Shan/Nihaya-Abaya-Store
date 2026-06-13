@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Our Atelier | Nihaya</title>
+  <meta name="description" content="Discover the story of Nihaya, where modest design meets luxury tailoring. Learn about our heritage, design values, and artisanal fabric selection.">
+  
+  <!-- CSS CDNs -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+
+  <!-- Header Section -->
+  <header class="navbar navbar-expand-md sticky-top nihaya-navbar">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-4">
+        <div class="brand-group">
+          <a class="navbar-brand brand-mark" href="index.html">Nihaya</a>
+          <div class="navbar-subtitle">The Ultimate Abaya Destination</div>
+        </div>
+
+        <button class="navbar-toggler d-md-none" type="button" data-bs-toggle="collapse" data-bs-target="#nihayaNavMenu" aria-controls="nihayaNavMenu" aria-expanded="false" aria-label="Toggle navigation">
+          <i class="bi bi-list"></i>
+        </button>
+      </div>
+
+      <div class="collapse navbar-collapse justify-content-center" id="nihayaNavMenu">
+        <ul class="navbar-nav align-items-center nihaya-menu">
+          <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="shop.html">Shop</a></li>
+          <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+          <li class="nav-item"><a class="nav-link" href="dashboard.html">Atelier Portal</a></li>
+        </ul>
+      </div>
+
+      <div class="search-box-container mx-3 d-none d-md-block">
+        <i class="bi bi-search search-icon-inside"></i>
+        <input type="text" id="search-input" class="search-input" placeholder="Search our luxury collection...">
+        <div id="search-results-dropdown" class="search-dropdown"></div>
+      </div>
+
+      <div class="header-actions">
+        <button class="icon-btn d-md-none" data-bs-toggle="collapse" data-bs-target="#mobileSearchCollapse" aria-label="Open search">
+          <i class="bi bi-search"></i>
+        </button>
+
+        <button type="button" class="icon-btn theme-toggle-btn d-none d-md-inline-block" aria-label="Switch to dark mode" title="Switch to dark mode">
+          <i class="bi bi-sun-fill"></i>
+        </button>
+
+        <a href="wishlist.html" class="icon-btn" id="wishlist-header-link" aria-label="View Wishlist">
+          <i class="bi bi-heart"></i>
+          <span class="badge-dot wishlist-badge" style="display: none;">0</span>
+        </a>
+
+        <a href="cart.html" class="icon-btn" id="cart-header-link" aria-label="View Cart">
+          <i class="bi bi-bag"></i>
+          <span class="badge-dot cart-badge" style="display: none;">0</span>
+        </a>
+
+        <a href="profile.html" class="icon-btn d-none d-md-inline-block" id="profile-header-link" aria-label="User Profile">
+          <i class="bi bi-person"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Search Bar Collapse -->
+  <div class="collapse d-md-none border-bottom p-3 bg-white" id="mobileSearchCollapse" style="background-color: var(--bg-primary) !important; border-color: var(--border-color) !important;">
+    <div class="search-box-container w-100 position-relative">
+      <i class="bi bi-search search-icon-inside"></i>
+      <input type="text" id="search-input" class="search-input" placeholder="Search abayas...">
+      <div id="search-results-dropdown" class="search-dropdown"></div>
+    </div>
+  </div>
+
+  <!-- About Content -->
+  <main class="py-5">
+    <div class="container">
+      
+      <!-- Editorial Header -->
+      <div class="text-center max-width-700 mx-auto mb-5 py-3">
+        <span class="text-uppercase tracking-wider text-muted small" style="letter-spacing: 0.25em;">Bespoke Heritage</span>
+        <h1 class="h1 mt-3 mb-4">Nihaya: The Ultimate Abaya Destination</h1>
+        <p class="lead text-secondary serif-font font-italic" style="font-size: 1.25rem;">"We do not merely create garments; we tailor confidence, modesty, and luxury into fluid silhouettes."</p>
+      </div>
+
+      <!-- Hero Atelier Image -->
+      <div class="mb-5 rounded overflow-hidden" style="height: 400px; background-image: url('assets/images/hero.png'); background-size: cover; background-position: center 30%;">
+        <div class="w-100 h-100" style="background-color: rgba(0,0,0,0.15);"></div>
+      </div>
+
+      <!-- Two Column Brand Story -->
+      <div class="row g-5 align-items-center mb-5">
+        <div class="col-md-6">
+          <h2 class="h2 mb-4">Crafting Timeless Grace</h2>
+          <p class="text-secondary mb-3">
+            Founded in Dubai with a single philosophy: to elevate modest wear into an art form, Nihaya has grown to become the premiere destination for discerning clients seeking sophisticated luxury Abayas. Our name, meaning "The Ultimate" or "The End", represents the pinnacle of modest fashion—the final, perfect touch to a woman's presence.
+          </p>
+          <p class="text-secondary mb-0">
+            Every thread, seam, and detail is meticulously curated. We source our linens from specialized Belgian farms, our silks from premium Japanese mills, and our Nida fabric directly from exclusive Korean partners. Every Abaya is cut and sewn by hand in our custom boutique workshop.
+          </p>
+        </div>
+        <div class="col-md-6">
+          <div class="p-4 rounded border" style="background-color: var(--bg-secondary); border-color: var(--border-color) !important;">
+            <h3 class="h4 mb-3">Our Core Philosophies</h3>
+            <ul class="list-unstyled mb-0">
+              <li class="d-flex align-items-start gap-3 mb-3">
+                <i class="bi bi-patch-check text-warning fs-5"></i>
+                <div>
+                  <strong>Bespoke Tailoring</strong>
+                  <p class="text-muted small mb-0">We adjust lengths, necklines, and fits to make sure your garment aligns precisely with your individual proportions.</p>
+                </div>
+              </li>
+              <li class="d-flex align-items-start gap-3 mb-3">
+                <i class="bi bi-flower1 text-warning fs-5"></i>
+                <div>
+                  <strong>Pure Textiles Only</strong>
+                  <p class="text-muted small mb-0">We never compromise with synthetics. Enjoy rich textures that breathe easily in all climates.</p>
+                </div>
+              </li>
+              <li class="d-flex align-items-start gap-3">
+                <i class="bi bi-stars text-warning fs-5"></i>
+                <div>
+                  <strong>Exclusive Customizations</strong>
+                  <p class="text-muted small mb-0">From premium hand-sewn pearl details to custom snap buttons, we tailor to your specifications.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fabric Guide Section -->
+      <section class="py-5 border-top" style="border-color: var(--border-color) !important;" id="fabric-guide">
+        <div class="text-center mb-5">
+          <span class="text-uppercase tracking-wider text-muted small" style="letter-spacing: 0.2em;">Textile Knowledge</span>
+          <h2 class="h2 mt-2">Fabric Guide</h2>
+          <p class="text-muted">Understanding the textures that compose our designs.</p>
+        </div>
+
+        <div class="row g-4">
+          <!-- Korean Nida -->
+          <div class="col-md-3 col-6">
+            <div class="p-3 border rounded text-center h-100" style="background-color: var(--bg-primary); border-color: var(--border-color) !important;">
+              <i class="bi bi-layers fs-2 mb-3 d-block" style="color: var(--accent-color);"></i>
+              <h4 class="h6">Korean Nida</h4>
+              <p class="text-muted small mb-0">A luxurious, cooling fabric with a soft drape and subtle sheen. The highest grade of Modest Textile worldwide.</p>
+            </div>
+          </div>
+          <!-- Saudi Crepe -->
+          <div class="col-md-3 col-6">
+            <div class="p-3 border rounded text-center h-100" style="background-color: var(--bg-primary); border-color: var(--border-color) !important;">
+              <i class="bi bi-grid-3x3-gap fs-2 mb-3 d-block" style="color: var(--accent-color);"></i>
+              <h4 class="h6">Saudi Crêpe</h4>
+              <p class="text-muted small mb-0">Medium-weight, matte-finish textured fabric. Highly durable and structured, ideal for daily tailoring and crisp lapels.</p>
+            </div>
+          </div>
+          <!-- Pure Linen -->
+          <div class="col-md-3 col-6">
+            <div class="p-3 border rounded text-center h-100" style="background-color: var(--bg-primary); border-color: var(--border-color) !important;">
+              <i class="bi bi-wind fs-2 mb-3 d-block" style="color: var(--accent-color);"></i>
+              <h4 class="h6">Organic Linen</h4>
+              <p class="text-muted small mb-0">Completely natural, breathable, and highly textured. Offers a beautiful casual-chic structure for seasonal overlays.</p>
+            </div>
+          </div>
+          <!-- Organza -->
+          <div class="col-md-3 col-6">
+            <div class="p-3 border rounded text-center h-100" style="background-color: var(--bg-primary); border-color: var(--border-color) !important;">
+              <i class="bi bi-brightness-high fs-2 mb-3 d-block" style="color: var(--accent-color);"></i>
+              <h4 class="h6">Sheer Organza</h4>
+              <p class="text-muted small mb-0">Stiff, ultra-lightweight luxury fabric with translucent layering. Perfect for voluminous formal event wear.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer-lux">
+    <div class="container">
+      <div class="row g-4 mb-5">
+        <div class="col-lg-4 col-md-6">
+          <div class="footer-logo">Nihaya</div>
+          <p class="footer-slogan">The Ultimate Abaya Destination</p>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-link-col">
+          <h5>Shopping</h5>
+          <ul>
+            <li><a href="shop.html">New Arrivals</a></li>
+            <li><a href="shop.html?category=Linen Collection">Linen Collection</a></li>
+            <li><a href="shop.html?category=Classic Black">Noir Nida</a></li>
+            <li><a href="wishlist.html">Your Wishlist</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-link-col">
+          <h5>About Brand</h5>
+          <ul>
+            <li><a href="about.html">Our Atelier Story</a></li>
+            <li><a href="about.html#fabric-guide">Fabric Guide</a></li>
+            <li><a href="contact.html">Boutique Locations</a></li>
+            <li><a href="contact.html">Custom Orders</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-link-col">
+          <h5>Bespoke Care</h5>
+          <ul>
+            <li><a href="dashboard.html">Order Tracker</a></li>
+            <li><a href="profile.html">Boutique Profile</a></li>
+            <li><a href="settings.html">Theme Settings</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-2 col-md-6 footer-link-col">
+          <h5>Concierge</h5>
+          <p class="text-muted small mb-2"><i class="bi bi-telephone"></i> +971 50 123 4567</p>
+          <p class="text-muted small mb-2"><i class="bi bi-envelope"></i> care@nihaya.com</p>
+        </div>
+      </div>
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center border-top pt-4" style="border-color: var(--border-color) !important;">
+        <p class="text-muted small mb-0">&copy; 2026 Nihaya Luxury Atelier. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Mobile Bottom Sticky Menu -->
+  <nav class="mobile-bottom-nav">
+    <a href="index.html" class="mobile-nav-item" aria-label="Home page">
+      <i class="bi bi-house"></i>
+      <span>Home</span>
+    </a>
+    <a href="shop.html" class="mobile-nav-item" aria-label="Shop products">
+      <i class="bi bi-search"></i>
+      <span>Shop</span>
+    </a>
+    <a href="wishlist.html" class="mobile-nav-item" aria-label="Saved products">
+      <i class="bi bi-heart"></i>
+      <span class="badge-dot wishlist-badge" style="display: none;">0</span>
+      <span>Wishlist</span>
+    </a>
+    <a href="cart.html" class="mobile-nav-item" aria-label="Shopping cart">
+      <i class="bi bi-bag"></i>
+      <span class="badge-dot cart-badge" style="display: none;">0</span>
+      <span>Cart</span>
+    </a>
+    <a href="profile.html" class="mobile-nav-item" aria-label="Customer dashboard">
+      <i class="bi bi-person"></i>
+      <span>Profile</span>
+    </a>
+  </nav>
+
+  <!-- JS Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/products.js"></script>
+  <script src="assets/js/store.js"></script>
+  <script src="assets/js/notifications.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>
