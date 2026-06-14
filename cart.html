@@ -310,9 +310,30 @@
 
       let subtotal = 0;
 
+      const sizeMap = {
+        XS: '52',
+        S: '54',
+        M: '56',
+        L: '58',
+        XL: '60',
+        'EXTRA SMALL': '52',
+        'SMALL': '54',
+        'MEDIUM': '56',
+        'LARGE': '58',
+        'EXTRA LARGE': '60'
+      };
+
+      const formatCartSize = (size) => {
+        if (!size) return '';
+        const normalized = String(size).trim();
+        if (/^\d+$/.test(normalized)) return normalized;
+        return sizeMap[normalized.toUpperCase()] || normalized;
+      };
+
       cart.forEach(item => {
         const product = PRODUCTS.find(p => p.id === item.id);
         if (!product) return;
+        const itemSizeLabel = formatCartSize(item.size);
 
         const lineTotal = product.price * item.quantity;
         subtotal += lineTotal;
@@ -331,12 +352,12 @@
             </div>
           </td>
           <td>
-            <span class="badge border text-dark" style="background-color: var(--bg-secondary); border-color: var(--border-color) !important;">${item.size}</span>
+            <span class="badge border text-dark" style="background-color: var(--bg-secondary); border-color: var(--border-color) !important;">${itemSizeLabel}</span>
           </td>
           <td>
             <div class="d-flex align-items-center qty-control">
               <button class="product-qty-btn py-1 px-2" onclick="changeQty('${item.id}', '${item.size}', -1)"><i class="bi bi-dash"></i></button>
-              <input type="text" class="product-qty-input w-25" value="${item.quantity}" readonly>
+              <input type="text" class="product-qty-input" value="${item.quantity}" readonly>
               <button class="product-qty-btn py-1 px-2" onclick="changeQty('${item.id}', '${item.size}', 1)"><i class="bi bi-plus"></i></button>
             </div>
           </td>
@@ -365,13 +386,13 @@
                 <i class="bi bi-trash"></i>
               </button>
             </div>
-            <div class="text-muted small">Size: ${item.size} | SKU: ${product.sku}</div>
+            <div class="text-muted small">Size: ${itemSizeLabel} | SKU: ${product.sku}</div>
             <div class="text-muted small mb-2">$${product.price.toFixed(2)} each</div>
             <div class="d-flex justify-content-between align-items-center">
               <div class="d-flex align-items-center qty-control">
-                <button class="product-qty-btn" style="width: 30px; height: 30px;" onclick="changeQty('${item.id}', '${item.size}', -1)"><i class="bi bi-dash"></i></button>
-                <input type="text" class="product-qty-input" style="width: 30px; height: 30px;" value="${item.quantity}" readonly>
-                <button class="product-qty-btn" style="width: 30px; height: 30px;" onclick="changeQty('${item.id}', '${item.size}', 1)"><i class="bi bi-plus"></i></button>
+                <button class="product-qty-btn" onclick="changeQty('${item.id}', '${item.size}', -1)"><i class="bi bi-dash"></i></button>
+                <input type="text" class="product-qty-input" value="${item.quantity}" readonly>
+                <button class="product-qty-btn" onclick="changeQty('${item.id}', '${item.size}', 1)"><i class="bi bi-plus"></i></button>
               </div>
               <strong>$${lineTotal.toFixed(2)}</strong>
             </div>
