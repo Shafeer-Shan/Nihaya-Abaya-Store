@@ -199,15 +199,25 @@ h1, h2, h3, h4, h5, h6, .serif-font {
   flex-wrap: nowrap;
   align-items: center;
   position: relative;
+  justify-content: flex-start;
+}
+
+.nihaya-navbar .container > .d-flex,
+.nihaya-navbar .container > .collapse.navbar-collapse,
+.nihaya-navbar .container > .search-box-container,
+.nihaya-navbar .container > .header-actions {
+  flex: 0 0 auto;
 }
 
 .collapse.navbar-collapse {
   flex: 1 1 auto;
   min-width: 0;
+  justify-content: flex-start;
 }
 
 .nihaya-menu {
   flex-wrap: nowrap;
+  justify-content: flex-start;
 }
 
 @media (max-width: 991px) {
@@ -387,12 +397,6 @@ h1, h2, h3, h4, h5, h6, .serif-font {
   flex: 0 0 240px;
 }
 
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
 .search-input {
   border: 1px solid var(--border-color);
   background-color: var(--bg-secondary);
@@ -500,6 +504,7 @@ h1, h2, h3, h4, h5, h6, .serif-font {
   display: flex;
   align-items: center;
   gap: 18px;
+  margin-left: auto;
 }
 
 .icon-btn {

@@ -103,7 +103,7 @@
         <aside class="col-md-3">
           <div class="p-3 border rounded bg-white mb-4" style="background-color: var(--bg-primary) !important; border-color: var(--border-color) !important;">
             <div class="text-center py-3 border-bottom mb-3" style="border-color: var(--border-color) !important;">
-              <img id="user-avatar" src="" alt="User Avatar" class="rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--accent-color);">
+              <img id="user-avatar" src="assets/images/default-avatar.svg" alt="User Avatar" class="rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--accent-color);">
               <h2 class="h5 mb-0" id="user-sidebar-name">Loading...</h2>
               <span class="small text-muted">Luxury Tier Client</span>
             </div>
@@ -137,11 +137,11 @@
               <div class="row">
                 <div class="col-md-6 lux-form-group">
                   <label class="lux-form-label" for="profile-name">Full Name</label>
-                  <input type="text" class="lux-input" id="profile-name" required>
+                  <input type="text" class="lux-input" id="profile-name" placeholder="Full name" required>
                 </div>
                 <div class="col-md-6 lux-form-group">
                   <label class="lux-form-label" for="profile-email">Email Address</label>
-                  <input type="email" class="lux-input" id="profile-email" required>
+                  <input type="email" class="lux-input" id="profile-email" placeholder="you@example.com" required>
                 </div>
               </div>
 
@@ -153,16 +153,21 @@
                   <span class="text-muted" style="font-size: 0.75rem;">Required to align orders under your account</span>
                 </div>
                 <div class="col-md-6 lux-form-group">
-                  <label class="lux-form-label" for="profile-avatar">Profile Image URL</label>
-                  <input type="url" class="lux-input" id="profile-avatar">
-                  <span class="text-muted" style="font-size: 0.75rem;">Link to a custom portrait or headshot</span>
+                  <label class="lux-form-label" for="profile-avatar">Profile Image URL / Upload</label>
+                  <input type="url" class="lux-input mb-2" id="profile-avatar" placeholder="https://...">
+                  <div class="d-flex gap-2 align-items-center">
+                    <input type="file" accept="image/*" class="form-control form-control-sm" id="profile-avatar-file">
+                    <button type="button" id="profile-avatar-remove" class="btn btn-sm btn-outline-secondary">Remove avatar</button>
+                  </div>
+                  <div id="profile-avatar-msg" class="small text-danger mt-1" style="display:none"></div>
+                  <span class="text-muted" style="font-size: 0.75rem; display:block;">Paste an image URL or upload a photo (saved locally in your browser)</span>
                 </div>
               </div>
 
               <!-- Shipping Address -->
               <div class="lux-form-group">
                 <label class="lux-form-label" for="profile-address">UAE Shipping / Boutique Address</label>
-                <textarea class="lux-input" id="profile-address" rows="3" required></textarea>
+                <textarea class="lux-input" id="profile-address" rows="3" placeholder="Street, Building, Area, City, UAE" required></textarea>
                 <span class="text-muted" style="font-size: 0.75rem;">We compile this into your WhatsApp order pre-filled template</span>
               </div>
 
@@ -278,10 +283,115 @@
         addressInput.value = profile.address || '';
 
         // Sidebar adjustments
-        document.getElementById('user-avatar').src = profile.avatar || 'https://images.unsplash.com/photo-1544002613-e87ca75a784a?w=150';
-        document.getElementById('user-sidebar-name').textContent = profile.name || 'Aisha Al-Mansoori';
+        document.getElementById('user-avatar').src = profile.avatar || 'assets/images/default-avatar.svg';
+        document.getElementById('user-sidebar-name').textContent = profile.name || 'Your Name';
       }
       loadFormValues();
+
+      // 1.b Image processing: validation, resizing and compression
+      const avatarFileInput = document.getElementById('profile-avatar-file');
+      const avatarMsg = document.getElementById('profile-avatar-msg');
+      const REMOVE_DEFAULT = 'assets/images/default-avatar.svg';
+      const MAX_BYTES = 200 * 1024; // 200 KB
+      const MAX_DIMENSION = 512; // max width/height
+
+      function bytesFromDataUrl(dataUrl) {
+        const base64 = dataUrl.split(',')[1] || '';
+        return Math.round((base64.length * 3) / 4);
+      }
+
+      function processImageFile(file) {
+        return new Promise((resolve, reject) => {
+          if (!file.type.startsWith('image/')) return reject(new Error('Not an image'));
+          const reader = new FileReader();
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.onload = () => {
+            const img = new Image();
+            img.onerror = () => reject(new Error('Invalid image'));
+            img.onload = () => {
+              // Calculate target size
+              let { width, height } = img;
+              const ratio = width / height;
+              if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+                if (ratio > 1) {
+                  width = MAX_DIMENSION;
+                  height = Math.round(MAX_DIMENSION / ratio);
+                } else {
+                  height = MAX_DIMENSION;
+                  width = Math.round(MAX_DIMENSION * ratio);
+                }
+              }
+
+              const canvas = document.createElement('canvas');
+              canvas.width = width;
+              canvas.height = height;
+              const ctx = canvas.getContext('2d');
+              ctx.drawImage(img, 0, 0, width, height);
+
+              // Try compressing with decreasing quality until under limit
+              let quality = 0.92;
+              (function tryCompress() {
+                const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                const size = bytesFromDataUrl(dataUrl);
+                if (size <= MAX_BYTES || quality <= 0.5) {
+                  // if still larger than MAX_BYTES at lowest quality, still accept but warn
+                  return resolve(dataUrl);
+                }
+                quality -= 0.08;
+                tryCompress();
+              })();
+            };
+            img.src = reader.result;
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+
+      if (avatarFileInput) {
+        avatarFileInput.addEventListener('change', async (ev) => {
+          const file = ev.target.files && ev.target.files[0];
+          if (!file) return;
+          avatarMsg.style.display = 'none';
+          try {
+            if (!file.type.startsWith('image/')) throw new Error('Please upload a valid image file.');
+            avatarMsg.style.display = 'block';
+            avatarMsg.textContent = 'Processing image...';
+            const dataUrl = await processImageFile(file);
+            // optional size check
+            const finalSize = bytesFromDataUrl(dataUrl);
+            if (finalSize > MAX_BYTES * 2) {
+              showNotification('Selected image is large; please choose a smaller file.', 'error');
+              avatarMsg.textContent = 'Image too large after compression.';
+              return;
+            }
+            avatarInput.value = dataUrl;
+            document.getElementById('user-avatar').src = dataUrl;
+            if (typeof updateHeaderAvatar === 'function') updateHeaderAvatar();
+            avatarMsg.style.display = 'none';
+            showNotification('✅ Avatar ready — remember to click Save to persist.', 'success');
+          } catch (err) {
+            avatarMsg.style.display = 'block';
+            avatarMsg.textContent = err.message || 'Failed to process image';
+            showNotification(err.message || 'Failed to process image', 'error');
+          }
+        });
+      }
+
+      // Remove avatar button
+      const removeBtn = document.getElementById('profile-avatar-remove');
+      if (removeBtn) {
+        removeBtn.addEventListener('click', () => {
+          avatarInput.value = '';
+          document.getElementById('user-avatar').src = REMOVE_DEFAULT;
+          if (typeof getProfile === 'function' && typeof saveProfile === 'function') {
+            const profile = getProfile();
+            profile.avatar = '';
+            saveProfile(profile);
+          }
+          if (typeof updateHeaderAvatar === 'function') updateHeaderAvatar();
+          showNotification('🗑️ Avatar removed and reset to default.', 'info');
+        });
+      }
 
       // 2. Save adjustments
       form.addEventListener('submit', (e) => {

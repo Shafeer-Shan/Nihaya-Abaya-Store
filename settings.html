@@ -103,7 +103,7 @@
         <aside class="col-md-3">
           <div class="p-3 border rounded bg-white mb-4" style="background-color: var(--bg-primary) !important; border-color: var(--border-color) !important;">
             <div class="text-center py-3 border-bottom mb-3" style="border-color: var(--border-color) !important;">
-              <img id="user-avatar" src="" alt="User Avatar" class="rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--accent-color);">
+              <img id="user-avatar" src="assets/images/default-avatar.svg" alt="User Avatar" class="rounded-circle mb-2" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid var(--accent-color);">
               <h2 class="h5 mb-0" id="user-sidebar-name">Loading...</h2>
               <span class="small text-muted">Luxury Tier Client</span>
             </div>
@@ -302,8 +302,8 @@
         whatsappPhone.value = settings.whatsappNumber;
 
         // Sidebar user display
-        document.getElementById('user-avatar').src = profile.avatar || 'https://images.unsplash.com/photo-1544002613-e87ca75a784a?w=150';
-        document.getElementById('user-sidebar-name').textContent = profile.name || 'Aisha Al-Mansoori';
+        document.getElementById('user-avatar').src = profile.avatar || 'assets/images/default-avatar.svg';
+        document.getElementById('user-sidebar-name').textContent = profile.name || 'Your Name';
       }
       loadSettings();
 
@@ -315,7 +315,7 @@
         settings.darkMode = darkmodeToggle.checked;
         settings.notificationsEnabled = notificationsToggle.checked;
         settings.notificationFrequency = notificationFreq.value;
-        settings.whatsappNumber = whatsappPhone.value.trim() || '971500000000';
+        settings.whatsappNumber = whatsappPhone.value.trim() || '919605561012';
 
         saveSettings(settings);
         showNotification('⚙️ Settings applied successfully!', 'success');

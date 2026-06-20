@@ -1,5 +1,6 @@
-// Nihaya Product Catalog Data
-const PRODUCTS = [
+const PRODUCT_STORAGE_KEY = 'nihaya_products';
+
+const INITIAL_PRODUCTS = [
   {
     id: 'abaya-beige-linen-open',
     name: 'Luxury Beige Linen Open Abaya',
@@ -16,7 +17,7 @@ const PRODUCTS = [
       'Handmade in our Nihaya luxury atelier'
     ],
     primaryImage: 'assets/images/abaya_beige.png',
-    secondaryImage: 'https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&q=80',
+    secondaryImage: 'https://img1.thasho.com/product_media/portrait/2026-05-04/medium-size/a9d916de867de09cf3ef51ad670ff65a.png',
     colorOptions: ['Pearl Beige', 'Alabaster Cream'],
     sizes: ['52', '54', '56', '58'],
     rating: 4.9,
@@ -38,7 +39,7 @@ const PRODUCTS = [
       'Breathable, lightweight, and wrinkle-resistant',
       'Includes premium black shayla'
     ],
-    primaryImage: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=800&q=80',
+    primaryImage: 'https://img1.thasho.com/product_media/portrait/2026-04-04/medium-size/b704ec20488b0b9ed2231b7f19383300.png',
     secondaryImage: 'https://images.unsplash.com/photo-1608748010899-18f300247112?w=800&q=80',
     colorOptions: ['Noir Black', 'Midnight Charcoal'],
     sizes: ['52', '54', '56', '58', '60'],
@@ -61,7 +62,7 @@ const PRODUCTS = [
       'Sophisticated drape suitable for formal events',
       'Includes coordinating emerald bordered shayla'
     ],
-    primaryImage: 'https://images.unsplash.com/photo-1544022613-e87ca75a784a?w=800&q=80',
+    primaryImage: 'https://img1.thasho.com/product_media/portrait/2026-04-04/medium-size/b3936542f4b81a3ba715483abf534963.png',
     secondaryImage: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80',
     colorOptions: ['Royal Emerald'],
     sizes: ['54', '56', '58'],
@@ -186,7 +187,120 @@ const PRODUCTS = [
   }
 ];
 
-// Helper functions for products
+// Supabase Configuration
+const SUPABASE_URL = 'https://peynmhxgwojtkanprrmd.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBleW5taHhnd29qdGthbnBycm1kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE5NDk3MDIsImV4cCI6MjA5NzUyNTcwMn0.3LBGgDl4V08PK3KmDeICsvstAJR-8i9noKb9HAW_lMU';
+
+let supabaseClient = null;
+if (typeof window !== 'undefined' && window.supabase) {
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+function loadStoredCatalog() {
+  if (typeof localStorage === 'undefined') return [...INITIAL_PRODUCTS];
+  const stored = localStorage.getItem(PRODUCT_STORAGE_KEY);
+  if (!stored) {
+    localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(INITIAL_PRODUCTS));
+    return [...INITIAL_PRODUCTS];
+  }
+
+  try {
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed : [...INITIAL_PRODUCTS];
+  } catch (error) {
+    console.warn('Unable to parse stored product catalog, reverting to initial data.', error);
+    localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(INITIAL_PRODUCTS));
+    return [...INITIAL_PRODUCTS];
+  }
+}
+
+function saveProductCatalog(products) {
+  if (typeof localStorage === 'undefined') return;
+  localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(products));
+}
+
+let PRODUCTS = loadStoredCatalog();
+
+// Async Background Sync with Supabase (Stale-While-Revalidate pattern)
+async function syncWithSupabase() {
+  if (!supabaseClient && typeof window !== 'undefined' && window.supabase) {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  }
+  if (!supabaseClient) return;
+
+  try {
+    let { data: supabaseProducts, error } = await supabaseClient
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+
+    // Seeding: if database table is empty, populate it with initial products
+    if (!supabaseProducts || supabaseProducts.length === 0) {
+      console.log('Supabase table is empty. Seeding default catalog...');
+      const { error: seedError } = await supabaseClient
+        .from('products')
+        .insert(INITIAL_PRODUCTS.map(p => ({
+          id: p.id,
+          name: p.name,
+          sku: p.sku,
+          price: p.price,
+          category: p.category,
+          material: p.material,
+          description: p.description,
+          details: p.details,
+          primaryImage: p.primaryImage,
+          secondaryImage: p.secondaryImage,
+          colorOptions: p.colorOptions,
+          sizes: p.sizes,
+          rating: p.rating,
+          reviews: p.reviews,
+          trending: p.trending
+        })));
+
+      if (seedError) throw seedError;
+
+      // Re-fetch seeded data
+      const { data: reFetched, error: reFetchError } = await supabaseClient
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: true });
+      if (reFetchError) throw reFetchError;
+      supabaseProducts = reFetched;
+    }
+
+    const formattedProducts = supabaseProducts.map(p => ({
+      id: p.id,
+      name: p.name,
+      sku: p.sku,
+      price: Number(p.price),
+      category: p.category,
+      material: p.material,
+      description: p.description,
+      details: Array.isArray(p.details) ? p.details : [],
+      primaryImage: p.primaryImage,
+      secondaryImage: p.secondaryImage || '',
+      colorOptions: Array.isArray(p.colorOptions) ? p.colorOptions : [],
+      sizes: Array.isArray(p.sizes) ? p.sizes : [],
+      rating: Number(p.rating),
+      reviews: Number(p.reviews),
+      trending: Boolean(p.trending)
+    }));
+
+    // Update local cache and dispatch refresh event
+    saveProductCatalog(formattedProducts);
+    PRODUCTS = formattedProducts;
+    window.dispatchEvent(new CustomEvent('nihaya-products-updated'));
+  } catch (err) {
+    console.error('Failed to sync catalog with Supabase:', err);
+  }
+}
+
+function persistProductCatalog() {
+  saveProductCatalog(PRODUCTS);
+}
+
 function getAllProducts() {
   return PRODUCTS;
 }
@@ -206,4 +320,169 @@ function getProductsByCategory(category) {
 function getCategories() {
   const categories = new Set(PRODUCTS.map(p => p.category));
   return Array.from(categories);
+}
+
+// Ensure unique dynamic IDs
+function generateProductId(name) {
+  const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  let candidate = slug || `product-${Date.now()}`;
+  let counter = 1;
+  while (PRODUCTS.some(p => p.id === candidate)) {
+    candidate = `${slug}-${counter++}`;
+  }
+  return candidate;
+}
+
+async function addProduct(product) {
+  const newProduct = {
+    ...product,
+    id: product.id || generateProductId(product.name),
+    rating: product.rating || 4.8,
+    reviews: product.reviews || 0
+  };
+
+  // Optimistic UI updates
+  PRODUCTS.push(newProduct);
+  persistProductCatalog();
+  window.dispatchEvent(new CustomEvent('nihaya-products-updated'));
+
+  if (supabaseClient) {
+    try {
+      const { error } = await supabaseClient
+        .from('products')
+        .insert([newProduct]);
+      if (error) throw error;
+      syncWithSupabase();
+    } catch (err) {
+      console.error('Supabase insert error:', err);
+    }
+  }
+  return newProduct;
+}
+
+async function updateProduct(id, updates) {
+  const index = PRODUCTS.findIndex(p => p.id === id);
+  if (index === -1) return null;
+
+  const updated = {
+    ...PRODUCTS[index],
+    ...updates,
+    id
+  };
+
+  // Optimistic UI updates
+  PRODUCTS[index] = updated;
+  persistProductCatalog();
+  window.dispatchEvent(new CustomEvent('nihaya-products-updated'));
+
+  if (supabaseClient) {
+    try {
+      const { error } = await supabaseClient
+        .from('products')
+        .update(updates)
+        .eq('id', id);
+      if (error) throw error;
+      syncWithSupabase();
+    } catch (err) {
+      console.error('Supabase update error:', err);
+    }
+  }
+  return updated;
+}
+
+async function deleteProduct(id) {
+  const index = PRODUCTS.findIndex(p => p.id === id);
+  if (index === -1) return false;
+
+  // Optimistic UI updates
+  PRODUCTS.splice(index, 1);
+  persistProductCatalog();
+  window.dispatchEvent(new CustomEvent('nihaya-products-updated'));
+
+  if (supabaseClient) {
+    try {
+      const { error } = await supabaseClient
+        .from('products')
+        .delete()
+        .eq('id', id);
+      if (error) throw error;
+      syncWithSupabase();
+    } catch (err) {
+      console.error('Supabase delete error:', err);
+    }
+  }
+  return true;
+}
+
+async function setProductCatalog(products) {
+  PRODUCTS = Array.isArray(products) ? products : [];
+  persistProductCatalog();
+  window.dispatchEvent(new CustomEvent('nihaya-products-updated'));
+
+  if (supabaseClient) {
+    try {
+      const { error: deleteError } = await supabaseClient
+        .from('products')
+        .delete()
+        .neq('id', 'dummy');
+      if (deleteError) throw deleteError;
+
+      if (PRODUCTS.length > 0) {
+        const { error: insertError } = await supabaseClient
+          .from('products')
+          .insert(PRODUCTS);
+        if (insertError) throw insertError;
+      }
+      syncWithSupabase();
+    } catch (err) {
+      console.error('Supabase set catalog error:', err);
+    }
+  }
+  return PRODUCTS;
+}
+
+async function resetProductCatalog() {
+  PRODUCTS = [...INITIAL_PRODUCTS];
+  persistProductCatalog();
+  window.dispatchEvent(new CustomEvent('nihaya-products-updated'));
+
+  if (supabaseClient) {
+    try {
+      const { error: deleteError } = await supabaseClient
+        .from('products')
+        .delete()
+        .neq('id', 'dummy');
+      if (deleteError) throw deleteError;
+      
+      const { error: seedError } = await supabaseClient
+        .from('products')
+        .insert(INITIAL_PRODUCTS);
+      if (seedError) throw seedError;
+      
+      syncWithSupabase();
+    } catch (err) {
+      console.error('Supabase reset catalog error:', err);
+    }
+  }
+  return PRODUCTS;
+}
+
+// Local listeners
+window.addEventListener('nihaya-products-updated', () => {
+  // Let standard load handle values
+});
+
+window.addEventListener('storage', (event) => {
+  if (event.key === PRODUCT_STORAGE_KEY) {
+    try {
+      PRODUCTS = JSON.parse(event.newValue) || PRODUCTS;
+    } catch (e) {}
+  }
+});
+
+// Trigger background sync on page load
+if (typeof document !== 'undefined') {
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(syncWithSupabase, 200);
+  });
 }

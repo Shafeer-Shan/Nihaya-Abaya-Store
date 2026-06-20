@@ -91,12 +91,12 @@ function isInWishlist(productId) {
 function getProfile() {
   const profile = localStorage.getItem(PROFILE_KEY);
   return profile ? JSON.parse(profile) : {
-    name: 'Aisha Al-Mansoori',
-    email: 'aisha@example.com',
-    phone: '+971 50 123 4567',
-    address: 'Villa 14, Jumeirah 2, Dubai, UAE',
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
     points: 150,
-    avatar: 'https://images.unsplash.com/photo-1544002613-e87ca75a784a?w=150'
+    avatar: 'assets/images/default-avatar.svg'
   };
 }
 
@@ -153,10 +153,10 @@ function orderSingleOnWhatsApp(productId, size, quantity = 1) {
   message += `*SKU:* ${product.sku}\n`;
   message += `*Size:* ${size}\n`;
   message += `*Quantity:* ${quantity}\n`;
-  message += `*Price:* $${product.price.toFixed(2)} each\n`;
+  message += `*Price:* ₹${product.price.toFixed(2)} INR each\n`;
   
   const total = product.price * quantity;
-  message += `*Total:* $${total.toFixed(2)}\n\n`;
+  message += `*Total:* ₹${total.toFixed(2)} INR\n\n`;
   
   message += `*Delivery Details:*\n`;
   message += `*Name:* ${profile.name}\n`;
@@ -190,12 +190,12 @@ function checkoutCartOnWhatsApp() {
       message += `${index + 1}. *${product.name}*\n`;
       message += `   - Size: ${item.size}\n`;
       message += `   - Qty: ${item.quantity}\n`;
-      message += `   - Price: $${product.price.toFixed(2)}\n`;
-      message += `   - Subtotal: $${lineTotal.toFixed(2)}\n\n`;
+      message += `   - Price: ₹${product.price.toFixed(2)} INR\n`;
+      message += `   - Subtotal: ₹${lineTotal.toFixed(2)} INR\n\n`;
     }
   });
 
-  message += `*Total Order Value:* $${totalSum.toFixed(2)}\n\n`;
+  message += `*Total Order Value:* ₹${totalSum.toFixed(2)} INR\n\n`;
   message += `*Delivery Details:*\n`;
   message += `*Name:* ${profile.name}\n`;
   message += `*Phone:* ${profile.phone}\n`;

@@ -134,7 +134,7 @@ function renderSearchResults(results) {
         <img src="${product.primaryImage}" alt="${product.name}" class="search-thumb">
         <div class="search-info">
           <div class="search-name">${product.name}</div>
-          <div class="search-price">$${product.price.toFixed(2)}</div>
+          <div class="search-price">₹${product.price.toFixed(2)} INR</div>
         </div>
       `;
       searchDropdown.appendChild(item);
@@ -240,3 +240,68 @@ function getQueryParam(param) {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get(param);
 }
+
+// 7. HEADER / MOBILE AVATAR SYNC
+function updateHeaderAvatar() {
+  if (typeof getProfile !== 'function') return;
+  const profile = getProfile();
+  const defaultAvatarPath = new URL('assets/images/default-avatar.svg', location.href).href;
+  const avatarSrc = profile && profile.avatar ? profile.avatar : defaultAvatarPath;
+  const name = profile && profile.name ? profile.name : 'Customer';
+
+  // Desktop header avatar (anchor with id 'profile-header-link')
+  const headerLink = document.getElementById('profile-header-link');
+  if (headerLink) {
+    let img = headerLink.querySelector('#header-user-avatar');
+    // remove only icon elements (like <i>) but preserve other content
+    const iconEls = headerLink.querySelectorAll('i, svg');
+    iconEls.forEach(el => el.remove());
+    if (!img) {
+      img = document.createElement('img');
+      img.id = 'header-user-avatar';
+      img.className = 'rounded-circle';
+      img.style.width = '34px';
+      img.style.height = '34px';
+      img.style.objectFit = 'cover';
+      img.style.border = '1px solid rgba(0,0,0,0.05)';
+      img.style.display = 'inline-block';
+      img.style.verticalAlign = 'middle';
+      img.setAttribute('aria-hidden', 'true');
+      headerLink.prepend(img);
+      headerLink.setAttribute('aria-label', 'User Profile');
+    }
+    img.src = avatarSrc;
+    img.alt = name + ' avatar';
+    img.onerror = function() {
+      if (img.src !== defaultAvatarPath) img.src = defaultAvatarPath;
+    };
+  }
+
+  // Mobile bottom nav avatar: anchor that links to profile.html inside .mobile-bottom-nav
+    const mobileProfileAnchor = document.querySelector('.mobile-bottom-nav a[href="profile.html"]');
+    if (mobileProfileAnchor) {
+      let mimg = mobileProfileAnchor.querySelector('#mobile-user-avatar');
+      const icon = mobileProfileAnchor.querySelector('i, svg');
+      if (icon) icon.remove();
+      if (!mimg) {
+        mimg = document.createElement('img');
+        mimg.id = 'mobile-user-avatar';
+        mimg.className = 'rounded-circle';
+        mimg.style.width = '22px';
+        mimg.style.height = '22px';
+        mimg.style.objectFit = 'cover';
+        mimg.style.display = 'inline-block';
+        mimg.style.verticalAlign = 'middle';
+        mobileProfileAnchor.prepend(mimg);
+      }
+      mimg.src = avatarSrc;
+      mimg.alt = name + ' avatar';
+      mimg.onerror = function() {
+        if (mimg.src !== defaultAvatarPath) mimg.src = defaultAvatarPath;
+      };
+    }
+}
+
+// Run once when DOM ready and after any profile update
+document.addEventListener('DOMContentLoaded', updateHeaderAvatar);
+window.addEventListener('profile-updated', updateHeaderAvatar);
