@@ -27,6 +27,91 @@
       border-color: var(--accent-color);
       opacity: 1;
     }
+    .product-media-thumb {
+      min-width: 90px;
+      width: 90px;
+      height: 90px;
+      border: 1px solid var(--border-color);
+      border-radius: 0.5rem;
+      padding: 0;
+      background: var(--bg-primary);
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      cursor: pointer;
+      opacity: 0.75;
+      transition: border-color 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+    }
+    .product-media-thumb.active, .product-media-thumb:hover {
+      border-color: var(--accent-color);
+      opacity: 1;
+      transform: translateY(-1px);
+    }
+    .product-media-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #product-media-display {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-site);
+      overflow: hidden;
+    }
+    #product-media-display img,
+    #product-media-display video,
+    #product-media-display iframe {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      background: var(--bg-site);
+    }
+    .video-external-fallback {
+      min-height: 320px;
+      background: var(--bg-site);
+      border: 1px solid var(--border-color);
+      border-radius: 0.75rem;
+      color: var(--text-primary);
+    }
+    .video-external-fallback a {
+      min-width: 180px;
+    }
+    .product-media-thumb-video {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    .product-media-thumb-video img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .product-media-thumb-video .video-icon {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255,255,255,0.95);
+      font-size: 1.4rem;
+      text-shadow: 0 0 12px rgba(0,0,0,0.4);
+      pointer-events: none;
+    }
+    #product-media-strip {
+      padding-bottom: 0.5rem;
+      scrollbar-width: thin;
+    }
+    #product-media-strip::-webkit-scrollbar {
+      height: 8px;
+    }
+    #product-media-strip::-webkit-scrollbar-thumb {
+      background: rgba(0,0,0,0.15);
+      border-radius: 999px;
+    }
     .product-qty-btn {
       width: 40px;
       height: 40px;
@@ -136,17 +221,13 @@
       </nav>
 
       <div class="row g-5">
-        <!-- Left: Image Gallery Column -->
+        <!-- Left: Media Gallery Column -->
         <div class="col-md-6">
           <div class="d-flex flex-column gap-3">
-            <!-- Large Main Image -->
             <div class="border rounded overflow-hidden bg-tertiary" style="border-color: var(--border-color) !important; aspect-ratio: 3/4;">
-              <img id="product-main-image" src="" alt="Main Product Image" class="w-100 h-100" style="object-fit: cover; transition: var(--transition-smooth);">
+              <div id="product-media-display" class="w-100 h-100"></div>
             </div>
-            <!-- Thumbnails Row -->
-            <div class="d-flex gap-2 justify-content-center" id="product-thumbnails-container">
-              <!-- Rendered dynamically -->
-            </div>
+            <div id="product-media-strip" class="d-flex gap-2 overflow-auto py-2"></div>
           </div>
         </div>
 
@@ -391,26 +472,163 @@
         starContainer.appendChild(star);
       }
 
-      // 3. Main Images & Gallery
-      const mainImg = document.getElementById('product-main-image');
-      mainImg.src = product.primaryImage;
-      mainImg.alt = product.name;
+      // 3. Main Media Display and Scrollable Asset Strip
+      const mediaDisplay = document.getElementById('product-media-display');
+      const mediaStrip = document.getElementById('product-media-strip');
 
-      const thumbsContainer = document.getElementById('product-thumbnails-container');
-      thumbsContainer.innerHTML = '';
-      
-      const images = [product.primaryImage, product.secondaryImage].filter(Boolean);
-      images.forEach((imgUrl, idx) => {
-        const btn = document.createElement('button');
-        btn.className = `thumbnail-img-btn ${idx === 0 ? 'active' : ''}`;
-        btn.innerHTML = `<img src="${imgUrl}" alt="${product.name} thumbnail" class="w-100 h-100" style="object-fit: cover;">`;
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.thumbnail-img-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          mainImg.src = imgUrl;
-        });
-        thumbsContainer.appendChild(btn);
+      const images = Array.isArray(product.images) && product.images.length
+        ? product.images
+        : [product.primaryImage, product.secondaryImage].filter(Boolean);
+      const assets = [];
+      const posterImage = images[0] || 'assets/images/abaya_beige.png';
+
+      const getVideoProvider = (url) => {
+        if (!url) return 'html5';
+        const normalized = url.trim();
+        if (/youtube\.com\/watch\?|youtu\.be\//i.test(normalized)) return 'youtube';
+        if (/youtube\.com\/shorts\//i.test(normalized)) return 'youtube';
+        if (/instagram\.com\/p\//i.test(normalized) || /instagram\.com\/reel\//i.test(normalized)) return 'instagram';
+        if (/drive\.google\.com\//i.test(normalized)) return 'googledrive';
+        return 'html5';
+      };
+
+      const parseYoutubeId = (url) => {
+        const ytMatch = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|shorts\/|embed\/))([\w-\-_]{11})/i);
+        return ytMatch ? ytMatch[1] : null;
+      };
+
+      const parseInstagramEmbedUrl = (url) => {
+        const match = url.match(/(https?:\/\/www\.instagram\.com\/(?:p|reel)\/[^\/]+)\/?.*/i);
+        return match ? `${match[1]}/embed` : null;
+      };
+
+      const parseGoogleDriveId = (url) => {
+        const normalized = url.trim();
+        const fileIdMatch = normalized.match(/(?:\/d\/|id=)([a-zA-Z0-9_-]{10,})(?:[\/?&]|$)/);
+        return fileIdMatch ? fileIdMatch[1] : null;
+      };
+
+      const parseGoogleDrivePreviewUrl = (url) => {
+        const fileId = parseGoogleDriveId(url);
+        return fileId ? `https://drive.google.com/file/d/${fileId}/preview` : null;
+      };
+
+      const renderVideoFallback = (asset) => {
+        const provider = asset.provider || getVideoProvider(asset.src);
+        if (provider === 'googledrive') {
+          const previewUrl = parseGoogleDrivePreviewUrl(asset.src);
+          if (previewUrl) {
+            mediaDisplay.innerHTML = `
+              <iframe src="${previewUrl}" title="${product.name} video" frameborder="0" class="w-100 h-100" allowfullscreen></iframe>
+            `;
+            return;
+          }
+        }
+
+        const videoId = provider === 'youtube' ? parseYoutubeId(asset.src) : null;
+        const href = provider === 'youtube'
+          ? (videoId ? `https://www.youtube.com/watch?v=${videoId}` : asset.src)
+          : asset.src;
+        const label = provider === 'youtube' ? 'Watch on YouTube' : 'View on Instagram';
+        const description = provider === 'youtube'
+          ? 'This YouTube video may not support embedding. Open it on YouTube instead.'
+          : 'Instagram posts often cannot be embedded. Open it on Instagram instead.';
+
+        mediaDisplay.innerHTML = `
+          <div class="video-external-fallback h-100 w-100 d-flex flex-column justify-content-center align-items-center text-center p-4">
+            <div class="mb-3"><i class="bi ${provider === 'youtube' ? 'bi-youtube text-danger' : 'bi-instagram text-secondary'} fs-1"></i></div>
+            <p class="mb-3 text-secondary">${description}</p>
+            <a href="${href}" target="_blank" rel="noreferrer noopener" class="btn btn-nihaya">${label}</a>
+          </div>
+        `;
+      };
+
+      const renderMedia = (asset) => {
+        if (!mediaDisplay) return;
+        if (asset.type === 'video') {
+          const provider = asset.provider || getVideoProvider(asset.src);
+          if (provider === 'html5') {
+            mediaDisplay.innerHTML = `
+              <video controls poster="${asset.poster}" class="w-100 h-100" style="object-fit: contain;">
+                <source src="${asset.src}" type="video/mp4">
+                Your browser does not support HTML5 video.
+              </video>
+            `;
+          } else if (provider === 'googledrive') {
+            const previewUrl = parseGoogleDrivePreviewUrl(asset.src);
+            if (previewUrl) {
+              mediaDisplay.innerHTML = `
+                <iframe src="${previewUrl}" title="${product.name} video" frameborder="0" class="w-100 h-100" allowfullscreen></iframe>
+              `;
+            } else {
+              renderVideoFallback(asset);
+            }
+          } else if (provider === 'youtube' || provider === 'instagram') {
+            renderVideoFallback(asset);
+          } else {
+            mediaDisplay.innerHTML = `
+              <video controls poster="${asset.poster}" class="w-100 h-100" style="object-fit: contain;">
+                <source src="${asset.src}" type="video/mp4">
+                Your browser does not support HTML5 video.
+              </video>
+            `;
+          }
+        } else {
+          mediaDisplay.innerHTML = `
+            <img src="${asset.src}" alt="${product.name}" class="w-100 h-100" style="object-fit: contain;">
+          `;
+        }
+      };
+
+      if (product.video) {
+        const provider = getVideoProvider(product.video);
+        assets.push({ type: 'video', src: product.video, poster: posterImage, provider });
+      }
+      images.forEach(src => {
+        if (src) assets.push({ type: 'image', src });
       });
+
+      const setActiveButton = (button) => {
+        if (!mediaStrip) return;
+        mediaStrip.querySelectorAll('.product-media-thumb').forEach(b => b.classList.remove('active'));
+        if (button) button.classList.add('active');
+      };
+
+      if (mediaStrip) {
+        mediaStrip.innerHTML = '';
+        assets.forEach((asset, idx) => {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'product-media-thumb';
+
+          if (asset.type === 'video') {
+            button.innerHTML = `
+              <div class="product-media-thumb-video">
+                <img src="${asset.poster}" alt="Video thumbnail">
+                <span class="video-icon"><i class="bi bi-play-circle-fill"></i></span>
+              </div>
+            `;
+          } else {
+            button.innerHTML = `<img src="${asset.src}" alt="${product.name} thumbnail">`;
+          }
+
+          button.addEventListener('click', () => {
+            setActiveButton(button);
+            renderMedia(asset);
+          });
+
+          if (idx === 0) {
+            button.classList.add('active');
+          }
+          mediaStrip.appendChild(button);
+        });
+      }
+
+      if (assets.length) {
+        renderMedia(assets[0]);
+      } else {
+        renderMedia({ type: 'image', src: posterImage });
+      }
 
       // 4. Sizing buttons loader
       const colorTabsContainer = document.getElementById('product-color-tabs');
@@ -434,8 +652,9 @@
           btn.classList.add('btn-nihaya');
           btn.classList.remove('btn-nihaya-outline');
           selectedColor = color.name;
-          if (color.image) {
-            mainImg.src = color.image;
+          if (color.image && mediaDisplay) {
+            renderMedia({ type: 'image', src: color.image, poster: posterImage });
+            setActiveButton(null);
           }
         });
         colorTabsContainer.appendChild(btn);

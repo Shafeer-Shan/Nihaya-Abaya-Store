@@ -213,7 +213,7 @@
           <div class="product-card">
             <div class="product-image-wrapper">
               <a href="product.html?id=${product.id}">
-                <img src="${product.primaryImage}" alt="${product.name}" class="product-img">
+                <img src="${(Array.isArray(product.images) && product.images[0]) || product.primaryImage}" alt="${product.name}" class="product-img">
               </a>
               <button class="position-absolute btn btn-sm rounded-circle bg-white border shadow-sm p-1 text-danger" style="top: 10px; right: 10px; z-index: 10; width: 32px; height: 32px;" onclick="removeFromWishlist('${product.id}')" title="Remove">
                 <i class="bi bi-x-lg"></i>

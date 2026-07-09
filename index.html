@@ -336,13 +336,19 @@
 
         trendingProducts.slice(0, 3).forEach((product, index) => {
           const tagLabel = product.tag || (index === 0 ? 'Best Seller' : index === 1 ? 'New Arrival' : 'Trending');
+          const primaryImage = Array.isArray(product.images) && product.images.length
+            ? product.images[0]
+            : product.primaryImage;
+          const secondaryImage = Array.isArray(product.images) && product.images[1]
+            ? product.images[1]
+            : product.secondaryImage || primaryImage;
           const imageOverrides = [
             'assets/images/abaya_beige.png',
             'assets/images/nihaya_royal_black_1780999076777.png',
             'assets/images/nihaya_modern_contrast_1780999092287.png'
           ];
-          const imageSource = imageOverrides[index] || product.primaryImage;
-          const altImage = product.secondaryImage || imageSource;
+          const imageSource = imageOverrides[index] || primaryImage;
+          const altImage = secondaryImage || imageSource;
           const col = document.createElement('div');
           col.className = 'col-lg-4 col-md-6';
           col.innerHTML = `

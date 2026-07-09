@@ -426,6 +426,13 @@
         }
 
         productsList.forEach(product => {
+          const primaryImage = Array.isArray(product.images) && product.images.length
+            ? product.images[0]
+            : product.primaryImage;
+          const secondaryImage = Array.isArray(product.images) && product.images[1]
+            ? product.images[1]
+            : product.secondaryImage || primaryImage;
+
           const col = document.createElement('div');
           col.className = 'col-12 col-sm-6 col-lg-4';
           col.innerHTML = `
@@ -433,8 +440,8 @@
               ${product.trending ? '<span class="product-badge">Trending</span>' : ''}
               <div class="product-image-wrapper">
                 <a href="product.html?id=${product.id}">
-                  <img src="${product.primaryImage}" alt="${product.name}" class="product-img">
-                  <img src="${product.secondaryImage}" alt="${product.name} Alternate" class="product-img-secondary">
+                  <img src="${primaryImage}" alt="${product.name}" class="product-img">
+                  <img src="${secondaryImage}" alt="${product.name} Alternate" class="product-img-secondary">
                 </a>
                 <div class="card-action-overlay">
                   <button class="overlay-btn" onclick="addToWishlist('${product.id}')" title="Add to Wishlist">

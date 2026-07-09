@@ -343,7 +343,7 @@
         tr.innerHTML = `
           <td>
             <div class="d-flex align-items-center gap-3">
-              <img src="${product.primaryImage}" alt="${product.name}" class="cart-img-preview">
+              <img src="${(Array.isArray(product.images) && product.images[0]) || product.primaryImage}" alt="${product.name}" class="cart-img-preview">
               <div>
                 <a href="product.html?id=${product.id}" class="serif-font fw-bold text-dark" style="color: var(--text-primary) !important;">${product.name}</a>
                 <div class="text-muted small">${product.sku}</div>
@@ -378,7 +378,7 @@
         mobDiv.style.borderColor = 'var(--border-color)';
         mobDiv.style.backgroundColor = 'var(--bg-primary)';
         mobDiv.innerHTML = `
-          <img src="${product.primaryImage}" alt="${product.name}" class="cart-img-preview">
+          <img src="${(Array.isArray(product.images) && product.images[0]) || product.primaryImage}" alt="${product.name}" class="cart-img-preview">
           <div class="flex-grow-1">
             <div class="d-flex justify-content-between">
               <a href="product.html?id=${product.id}" class="serif-font fw-bold" style="font-size: 1rem; color: var(--text-primary) !important;">${product.name}</a>

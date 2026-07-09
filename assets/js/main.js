@@ -130,8 +130,9 @@ function renderSearchResults(results) {
       const item = document.createElement('a');
       item.href = `product.html?id=${product.id}`;
       item.className = 'search-item';
+      const resultImage = Array.isArray(product.images) && product.images.length ? product.images[0] : product.primaryImage;
       item.innerHTML = `
-        <img src="${product.primaryImage}" alt="${product.name}" class="search-thumb">
+        <img src="${resultImage}" alt="${product.name}" class="search-thumb">
         <div class="search-info">
           <div class="search-name">${product.name}</div>
           <div class="search-price">₹${product.price.toFixed(2)} INR</div>

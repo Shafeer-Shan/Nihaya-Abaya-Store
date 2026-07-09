@@ -98,7 +98,12 @@
       bottom: 0;
       z-index: 999;
       overflow-y: auto;
+      transform: translateX(-100%);
       transition: transform 0.3s ease;
+    }
+
+    .admin-sidebar.open {
+      transform: translateX(0);
     }
 
     .admin-sidebar::-webkit-scrollbar { width: 4px; }
@@ -229,10 +234,15 @@
     /* --- Main Content Area --- */
     .admin-main {
       flex: 1;
-      margin-left: var(--admin-sidebar-width);
+      margin-left: 0;
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+      transition: margin-left 0.3s ease, width 0.3s ease;
+    }
+
+    .admin-main.sidebar-visible {
+      margin-left: var(--admin-sidebar-width);
     }
 
     /* --- Top Header Bar --- */
@@ -256,11 +266,13 @@
     }
 
     .admin-topbar .topbar-left .sidebar-toggle-btn {
-      display: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       background: none;
       border: 1px solid var(--admin-card-border);
       border-radius: 8px;
-      padding: 6px 10px;
+      padding: 8px 10px;
       cursor: pointer;
       color: var(--admin-text-secondary);
       transition: var(--admin-transition);
@@ -1200,21 +1212,21 @@
                     <label class="form-label">Sizes</label>
                     <input type="text" id="admin-product-sizes" class="form-control" placeholder="52, 54, 56">
                   </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Primary Image URL</label>
-                    <input type="url" id="admin-primary-image-url" class="form-control" placeholder="assets/images/abaya_beige.png">
+                  <div class="col-12">
+                    <label class="form-label">Product Images</label>
+                    <div id="admin-image-inputs-container" class="row g-3"></div>
+                    <button type="button" id="admin-add-image-btn" class="btn btn-sm btn-admin-outline mt-2">
+                      <i class="bi bi-plus-circle"></i> Add Image
+                    </button>
+                    <div class="form-text text-muted">Upload multiple product image URLs or files. First image becomes the main product image.</div>
                   </div>
                   <div class="col-md-6">
-                    <label class="form-label">Secondary Image URL</label>
-                    <input type="url" id="admin-secondary-image-url" class="form-control" placeholder="Optional second image URL">
+                    <label class="form-label">Video URL</label>
+                    <input type="text" id="admin-video-url" class="form-control" placeholder="https://example.com/video.mp4">
                   </div>
                   <div class="col-md-6">
-                    <label class="form-label">Primary Image File</label>
-                    <input type="file" id="admin-primary-image-file" class="form-control" accept="image/*">
-                  </div>
-                  <div class="col-md-6">
-                    <label class="form-label">Secondary Image File</label>
-                    <input type="file" id="admin-secondary-image-file" class="form-control" accept="image/*">
+                    <label class="form-label">Video File</label>
+                    <input type="file" id="admin-video-file" class="form-control" accept="video/*">
                   </div>
                   <div class="col-12 d-flex flex-wrap gap-3 align-items-center">
                     <div>
@@ -1386,12 +1398,20 @@
   <script src="assets/js/admin.js"></script>
 
   <script>
-    // Sidebar toggle for mobile
+    // Sidebar toggle for desktop/mobile
     function toggleAdminSidebar() {
       const sidebar = document.getElementById('admin-sidebar');
       const overlay = document.getElementById('admin-sidebar-overlay');
-      sidebar.classList.toggle('open');
-      overlay.classList.toggle('active');
+      const main = document.querySelector('.admin-main');
+      const isOpen = sidebar.classList.toggle('open');
+
+      if (window.innerWidth <= 991.98) {
+        overlay.classList.toggle('active', isOpen);
+      }
+
+      if (main) {
+        main.classList.toggle('sidebar-visible', isOpen);
+      }
     }
 
     // Close sidebar on escape key
@@ -1399,12 +1419,28 @@
       if (e.key === 'Escape') {
         const sidebar = document.getElementById('admin-sidebar');
         const overlay = document.getElementById('admin-sidebar-overlay');
+        const main = document.querySelector('.admin-main');
         if (sidebar.classList.contains('open')) {
           sidebar.classList.remove('open');
           overlay.classList.remove('active');
         }
+        if (main) {
+          main.classList.remove('sidebar-visible');
+        }
       }
     });
+
+    // Close sidebar when overlay is clicked
+    const sidebarOverlay = document.getElementById('admin-sidebar-overlay');
+    if (sidebarOverlay) {
+      sidebarOverlay.addEventListener('click', () => {
+        const sidebar = document.getElementById('admin-sidebar');
+        const main = document.querySelector('.admin-main');
+        sidebar.classList.remove('open');
+        sidebarOverlay.classList.remove('active');
+        if (main) main.classList.remove('sidebar-visible');
+      });
+    }
   </script>
 </body>
 </html>

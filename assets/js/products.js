@@ -200,23 +200,57 @@ function loadStoredCatalog() {
   if (typeof localStorage === 'undefined') return [...INITIAL_PRODUCTS];
   const stored = localStorage.getItem(PRODUCT_STORAGE_KEY);
   if (!stored) {
-    localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(INITIAL_PRODUCTS));
-    return [...INITIAL_PRODUCTS];
+    const initialCatalog = INITIAL_PRODUCTS.map(normalizeProductEntry);
+    localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(initialCatalog));
+    return initialCatalog;
   }
 
   try {
     const parsed = JSON.parse(stored);
-    return Array.isArray(parsed) ? parsed : [...INITIAL_PRODUCTS];
+    return Array.isArray(parsed) ? parsed.map(normalizeProductEntry) : INITIAL_PRODUCTS.map(normalizeProductEntry);
   } catch (error) {
     console.warn('Unable to parse stored product catalog, reverting to initial data.', error);
-    localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(INITIAL_PRODUCTS));
-    return [...INITIAL_PRODUCTS];
+    const normalizedInitial = INITIAL_PRODUCTS.map(normalizeProductEntry);
+    localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(normalizedInitial));
+    return normalizedInitial;
   }
 }
 
 function saveProductCatalog(products) {
   if (typeof localStorage === 'undefined') return;
   localStorage.setItem(PRODUCT_STORAGE_KEY, JSON.stringify(products));
+}
+
+function normalizeProductEntry(product) {
+  if (!product || typeof product !== 'object') return product;
+
+  let normalizedImages = [];
+  if (Array.isArray(product.images)) {
+    normalizedImages = product.images.filter(Boolean);
+  } else if (typeof product.images === 'string') {
+    try {
+      const parsedImages = JSON.parse(product.images);
+      if (Array.isArray(parsedImages)) {
+        normalizedImages = parsedImages.filter(Boolean);
+      }
+    } catch (e) {
+      // If stored as comma-separated string
+      normalizedImages = product.images.split(',').map(i => i.trim()).filter(Boolean);
+    }
+  } else {
+    normalizedImages = [product.primaryImage, product.secondaryImage].filter(Boolean);
+  }
+
+  return {
+    ...product,
+    details: Array.isArray(product.details) ? product.details : (typeof product.details === 'string' ? product.details.split('\n').map(i => i.trim()).filter(Boolean) : []),
+    colorOptions: Array.isArray(product.colorOptions) ? product.colorOptions : (typeof product.colorOptions === 'string' ? product.colorOptions.split(',').map(i => i.trim()).filter(Boolean) : []),
+    sizes: Array.isArray(product.sizes) ? product.sizes : (typeof product.sizes === 'string' ? product.sizes.split(',').map(i => i.trim()).filter(Boolean) : []),
+    images: normalizedImages.length ? normalizedImages : ['assets/images/abaya_beige.png'],
+    primaryImage: normalizedImages[0] || product.primaryImage || 'assets/images/abaya_beige.png',
+    secondaryImage: normalizedImages[1] || product.secondaryImage || '',
+    video: product.video || ''
+  };
 }
 
 let PRODUCTS = loadStoredCatalog();
@@ -241,23 +275,7 @@ async function syncWithSupabase() {
       console.log('Supabase table is empty. Seeding default catalog...');
       const { error: seedError } = await supabaseClient
         .from('products')
-        .insert(INITIAL_PRODUCTS.map(p => ({
-          id: p.id,
-          name: p.name,
-          sku: p.sku,
-          price: p.price,
-          category: p.category,
-          material: p.material,
-          description: p.description,
-          details: p.details,
-          primaryImage: p.primaryImage,
-          secondaryImage: p.secondaryImage,
-          colorOptions: p.colorOptions,
-          sizes: p.sizes,
-          rating: p.rating,
-          reviews: p.reviews,
-          trending: p.trending
-        })));
+        .insert(INITIAL_PRODUCTS.map(p => getSupabasePayload(normalizeProductEntry(p), true)));
 
       if (seedError) throw seedError;
 
@@ -270,23 +288,31 @@ async function syncWithSupabase() {
       supabaseProducts = reFetched;
     }
 
-    const formattedProducts = supabaseProducts.map(p => ({
-      id: p.id,
-      name: p.name,
-      sku: p.sku,
-      price: Number(p.price),
-      category: p.category,
-      material: p.material,
-      description: p.description,
-      details: Array.isArray(p.details) ? p.details : [],
-      primaryImage: p.primaryImage,
-      secondaryImage: p.secondaryImage || '',
-      colorOptions: Array.isArray(p.colorOptions) ? p.colorOptions : [],
-      sizes: Array.isArray(p.sizes) ? p.sizes : [],
-      rating: Number(p.rating),
-      reviews: Number(p.reviews),
-      trending: Boolean(p.trending)
-    }));
+    const formattedProducts = supabaseProducts.map(p => {
+      const dbImages = Array.isArray(p.images)
+        ? p.images.filter(Boolean)
+        : [p.primaryImage, p.secondaryImage].filter(Boolean);
+
+      return normalizeProductEntry({
+        id: p.id,
+        name: p.name,
+        sku: p.sku,
+        price: Number(p.price),
+        category: p.category,
+        material: p.material,
+        description: p.description,
+        details: Array.isArray(p.details) ? p.details : [],
+        images: dbImages,
+        primaryImage: dbImages[0] || p.primaryImage,
+        secondaryImage: dbImages[1] || p.secondaryImage || '',
+        video: p.video || '',
+        colorOptions: Array.isArray(p.colorOptions) ? p.colorOptions : [],
+        sizes: Array.isArray(p.sizes) ? p.sizes : [],
+        rating: Number(p.rating),
+        reviews: Number(p.reviews),
+        trending: Boolean(p.trending)
+      });
+    });
 
     // Update local cache and dispatch refresh event
     saveProductCatalog(formattedProducts);
@@ -299,6 +325,33 @@ async function syncWithSupabase() {
 
 function persistProductCatalog() {
   saveProductCatalog(PRODUCTS);
+}
+
+function getSupabasePayload(product, includeMedia = true) {
+  const payload = {
+    id: product.id,
+    name: product.name,
+    sku: product.sku,
+    price: product.price,
+    category: product.category,
+    material: product.material,
+    description: product.description,
+    details: product.details,
+    primaryImage: product.primaryImage,
+    secondaryImage: product.secondaryImage || '',
+    colorOptions: product.colorOptions,
+    sizes: product.sizes,
+    rating: product.rating,
+    reviews: product.reviews,
+    trending: product.trending
+  };
+
+  if (includeMedia) {
+    payload.images = Array.isArray(product.images) ? product.images : [product.primaryImage, product.secondaryImage].filter(Boolean);
+    if (product.video) payload.video = product.video;
+  }
+
+  return payload;
 }
 
 function getAllProducts() {
@@ -334,12 +387,12 @@ function generateProductId(name) {
 }
 
 async function addProduct(product) {
-  const newProduct = {
+  const newProduct = normalizeProductEntry({
     ...product,
     id: product.id || generateProductId(product.name),
     rating: product.rating || 4.8,
     reviews: product.reviews || 0
-  };
+  });
 
   // Optimistic UI updates
   PRODUCTS.push(newProduct);
@@ -348,10 +401,19 @@ async function addProduct(product) {
 
   if (supabaseClient) {
     try {
+      const payload = getSupabasePayload(newProduct, true);
       const { error } = await supabaseClient
         .from('products')
-        .insert([newProduct]);
-      if (error) throw error;
+        .insert([payload]);
+      if (error) {
+        console.error('Supabase primary insert failed. Payload may require product table columns images/json and video/text:', payload, error);
+        const fallbackPayload = getSupabasePayload(newProduct, false);
+        const fallback = await supabaseClient
+          .from('products')
+          .insert([fallbackPayload]);
+        if (fallback.error) throw fallback.error;
+        console.warn('Supabase fallback insert succeeded without images/video columns. Add images/video columns to products table for full support.', fallbackPayload);
+      }
       syncWithSupabase();
     } catch (err) {
       console.error('Supabase insert error:', err);
@@ -364,11 +426,11 @@ async function updateProduct(id, updates) {
   const index = PRODUCTS.findIndex(p => p.id === id);
   if (index === -1) return null;
 
-  const updated = {
+  const updated = normalizeProductEntry({
     ...PRODUCTS[index],
     ...updates,
     id
-  };
+  });
 
   // Optimistic UI updates
   PRODUCTS[index] = updated;
@@ -377,11 +439,21 @@ async function updateProduct(id, updates) {
 
   if (supabaseClient) {
     try {
+      const payload = getSupabasePayload(updated);
       const { error } = await supabaseClient
         .from('products')
-        .update(updates)
+        .update(payload)
         .eq('id', id);
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase primary update failed. Payload may require product table columns images/json and video/text:', payload, error);
+        const fallbackPayload = getSupabasePayload(updated, false);
+        const fallback = await supabaseClient
+          .from('products')
+          .update(fallbackPayload)
+          .eq('id', id);
+        if (fallback.error) throw fallback.error;
+        console.warn('Supabase fallback update succeeded without images/video columns. Add images/video columns to products table for full support.', fallbackPayload);
+      }
       syncWithSupabase();
     } catch (err) {
       console.error('Supabase update error:', err);
@@ -415,7 +487,7 @@ async function deleteProduct(id) {
 }
 
 async function setProductCatalog(products) {
-  PRODUCTS = Array.isArray(products) ? products : [];
+  PRODUCTS = Array.isArray(products) ? products.map(normalizeProductEntry) : [];
   persistProductCatalog();
   window.dispatchEvent(new CustomEvent('nihaya-products-updated'));
 
@@ -430,8 +502,13 @@ async function setProductCatalog(products) {
       if (PRODUCTS.length > 0) {
         const { error: insertError } = await supabaseClient
           .from('products')
-          .insert(PRODUCTS);
-        if (insertError) throw insertError;
+          .insert(PRODUCTS.map(p => getSupabasePayload(p, true)));
+        if (insertError) {
+          const { error: fallbackError } = await supabaseClient
+            .from('products')
+            .insert(PRODUCTS.map(p => getSupabasePayload(p, false)));
+          if (fallbackError) throw fallbackError;
+        }
       }
       syncWithSupabase();
     } catch (err) {
@@ -442,7 +519,7 @@ async function setProductCatalog(products) {
 }
 
 async function resetProductCatalog() {
-  PRODUCTS = [...INITIAL_PRODUCTS];
+  PRODUCTS = INITIAL_PRODUCTS.map(normalizeProductEntry);
   persistProductCatalog();
   window.dispatchEvent(new CustomEvent('nihaya-products-updated'));
 
@@ -456,7 +533,7 @@ async function resetProductCatalog() {
       
       const { error: seedError } = await supabaseClient
         .from('products')
-        .insert(INITIAL_PRODUCTS);
+        .insert(INITIAL_PRODUCTS.map(getSupabasePayload));
       if (seedError) throw seedError;
       
       syncWithSupabase();
@@ -473,10 +550,13 @@ window.addEventListener('nihaya-products-updated', () => {
 });
 
 window.addEventListener('storage', (event) => {
-  if (event.key === PRODUCT_STORAGE_KEY) {
+  if (event.key === PRODUCT_STORAGE_KEY && event.newValue) {
     try {
-      PRODUCTS = JSON.parse(event.newValue) || PRODUCTS;
-    } catch (e) {}
+      PRODUCTS = JSON.parse(event.newValue).map(normalizeProductEntry);
+      window.dispatchEvent(new CustomEvent('nihaya-products-updated'));
+    } catch (e) {
+      console.warn('Failed to parse updated product catalog from storage event.', e);
+    }
   }
 });
 
