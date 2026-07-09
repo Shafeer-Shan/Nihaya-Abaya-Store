@@ -1177,7 +1177,7 @@ h1, h2, h3, h4, h5, h6, .serif-font {
   padding-bottom: 24px;
   background: rgba(0, 0, 0, 0.08);
   opacity: 0;
-  pointer-events: none;
+  pointer-events: none; /* keep overlay itself non-blocking so image links remain clickable */
   transition: opacity 0.25s ease;
   gap: 12px;
   justify-content: center;
@@ -1186,7 +1186,7 @@ h1, h2, h3, h4, h5, h6, .serif-font {
 .product-card:hover .card-action-overlay,
 .product-card:focus-within .card-action-overlay {
   opacity: 1;
-  pointer-events: auto;
+  /* overlay remains non-blocking; only the buttons should accept pointer events */
 }
 
 .overlay-btn {
@@ -1203,6 +1203,7 @@ h1, h2, h3, h4, h5, h6, .serif-font {
   transition: transform 0.22s ease, border-color 0.22s ease, background-color 0.22s ease, color 0.22s ease, box-shadow 0.22s ease;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
   cursor: pointer;
+  pointer-events: auto; /* ensure buttons remain clickable even when overlay doesn't block other clicks */
 }
 
 .overlay-btn i {
